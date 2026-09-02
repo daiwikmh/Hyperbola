@@ -186,12 +186,14 @@ contract RediSwapSandwichHook {
         uint256 secondPriceWad;
 
         if (params.zeroForOne) {
-            trade =
-                RediSwapMath.Trade(RediSwapMath.Direction.XForY, amountIn, (amountIn * limitPriceWad) / RediSwapMath.WAD);
+            trade = RediSwapMath.Trade(
+                RediSwapMath.Direction.XForY, amountIn, (amountIn * limitPriceWad) / RediSwapMath.WAD
+            );
             (found, result.primaryWinner, winnerPriceWad, secondQuoter, secondPriceWad) = registry.bestForXForY(poolId);
         } else {
-            trade =
-                RediSwapMath.Trade(RediSwapMath.Direction.YForX, amountIn, (amountIn * RediSwapMath.WAD) / limitPriceWad);
+            trade = RediSwapMath.Trade(
+                RediSwapMath.Direction.YForX, amountIn, (amountIn * RediSwapMath.WAD) / limitPriceWad
+            );
             (found, result.primaryWinner, winnerPriceWad, secondQuoter, secondPriceWad) = registry.bestForYForX(poolId);
         }
 
@@ -218,9 +220,7 @@ contract RediSwapSandwichHook {
         if (liquidityScaled == 0) liquidityScaled = 1;
 
         RediSwapMath.Trade memory scaledTrade = RediSwapMath.Trade({
-            direction: trade.direction,
-            amountIn: _scaleDown(trade.amountIn),
-            amountOut: _scaleDown(trade.amountOut)
+            direction: trade.direction, amountIn: _scaleDown(trade.amountIn), amountOut: _scaleDown(trade.amountOut)
         });
 
         (, uint256 ylScaled) = RediSwapMath.limitState(liquidityScaled * liquidityScaled, scaledTrade);
@@ -237,13 +237,11 @@ contract RediSwapSandwichHook {
         if (scaled == 0) scaled = 1;
     }
 
-    function afterSwap(
-        address,
-        PoolKey calldata key,
-        IPoolManager.SwapParams calldata,
-        BalanceDelta,
-        bytes calldata
-    ) external onlyPoolManager returns (bytes4, int128) {
+    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+        external
+        onlyPoolManager
+        returns (bytes4, int128)
+    {
         PoolId poolId = key.toId();
         uint160 targetSqrtPrice = _preBundleSqrtPrice[poolId];
         Bundle memory bundle = _bundle[poolId];
@@ -303,9 +301,7 @@ contract RediSwapSandwichHook {
         BalanceDelta delta = poolManager.swap(
             key,
             IPoolManager.SwapParams({
-                zeroForOne: zeroForOne,
-                amountSpecified: -int256(available),
-                sqrtPriceLimitX96: targetSqrtPrice
+                zeroForOne: zeroForOne, amountSpecified: -int256(available), sqrtPriceLimitX96: targetSqrtPrice
             }),
             ""
         );

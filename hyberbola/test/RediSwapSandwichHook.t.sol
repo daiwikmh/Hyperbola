@@ -64,7 +64,10 @@ contract RediSwapSandwichHookTest is Deployers {
         _fundArbitrageur(arbMid, auctionVault, 50_000 ether, 50_000 ether);
     }
 
-    function _deployHookAndVault(int24 frontrunTicks) internal returns (RediSwapSandwichHook hook, ArbitrageurVault vault) {
+    function _deployHookAndVault(int24 frontrunTicks)
+        internal
+        returns (RediSwapSandwichHook hook, ArbitrageurVault vault)
+    {
         vault = new ArbitrageurVault();
 
         uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG);
@@ -77,7 +80,11 @@ contract RediSwapSandwichHookTest is Deployers {
         for (uint256 i; i < 200_000; i++) {
             salt = bytes32(i);
             predicted = address(
-                uint160(uint256(keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))))
+                uint160(
+                    uint256(
+                        keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))
+                    )
+                )
             );
             if (uint160(predicted) & Hooks.ALL_HOOK_MASK == flags && predicted.code.length == 0) break;
         }
@@ -96,7 +103,9 @@ contract RediSwapSandwichHookTest is Deployers {
         int24 upper = TickMath.maxUsableTick(TICK_SPACING);
         modifyLiquidityRouter.modifyLiquidity(
             key,
-            IPoolManager.ModifyLiquidityParams({tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0}),
+            IPoolManager.ModifyLiquidityParams({
+                tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0
+            }),
             ""
         );
     }
@@ -138,7 +147,9 @@ contract RediSwapSandwichHookTest is Deployers {
 
         return swapRouter.swap(
             key,
-            IPoolManager.SwapParams({zeroForOne: zeroForOne, amountSpecified: amountSpecified, sqrtPriceLimitX96: limit}),
+            IPoolManager.SwapParams({
+                zeroForOne: zeroForOne, amountSpecified: amountSpecified, sqrtPriceLimitX96: limit
+            }),
             PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
             ""
         );

@@ -23,9 +23,8 @@ contract DeployScript is Script {
 
         bytes32 salt = _mineSalt(poolManagerAddress, address(registry), address(vault), frontrunTicks);
 
-        RediSwapSandwichHook hook = new RediSwapSandwichHook{salt: salt}(
-            IPoolManager(poolManagerAddress), registry, vault, frontrunTicks
-        );
+        RediSwapSandwichHook hook =
+            new RediSwapSandwichHook{salt: salt}(IPoolManager(poolManagerAddress), registry, vault, frontrunTicks);
 
         vault.setHook(address(hook));
 

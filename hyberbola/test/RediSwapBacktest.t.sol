@@ -59,7 +59,11 @@ contract RediSwapBacktestTest is Deployers {
         for (uint256 i; i < 200_000; i++) {
             salt = bytes32(i);
             predicted = address(
-                uint160(uint256(keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))))
+                uint160(
+                    uint256(
+                        keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))
+                    )
+                )
             );
             if (uint160(predicted) & Hooks.ALL_HOOK_MASK == flags && predicted.code.length == 0) break;
         }
@@ -71,18 +75,23 @@ contract RediSwapBacktestTest is Deployers {
         PoolId idPlain;
         (plainKey, idPlain) = initPool(currency0, currency1, IHooks(address(0)), 3000, TICK_SPACING, SQRT_PRICE_1_1);
         PoolId idHooked;
-        (hookedKey, idHooked) = initPool(currency0, currency1, IHooks(address(hook)), 3000, TICK_SPACING, SQRT_PRICE_1_1);
+        (hookedKey, idHooked) =
+            initPool(currency0, currency1, IHooks(address(hook)), 3000, TICK_SPACING, SQRT_PRICE_1_1);
 
         int24 lower = TickMath.minUsableTick(TICK_SPACING);
         int24 upper = TickMath.maxUsableTick(TICK_SPACING);
         modifyLiquidityRouter.modifyLiquidity(
             plainKey,
-            IPoolManager.ModifyLiquidityParams({tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0}),
+            IPoolManager.ModifyLiquidityParams({
+                tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0
+            }),
             ""
         );
         modifyLiquidityRouter.modifyLiquidity(
             hookedKey,
-            IPoolManager.ModifyLiquidityParams({tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0}),
+            IPoolManager.ModifyLiquidityParams({
+                tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0
+            }),
             ""
         );
 
@@ -166,9 +175,7 @@ contract RediSwapBacktestTest is Deployers {
         swapRouter.swap(
             plainKey,
             IPoolManager.SwapParams({
-                zeroForOne: zeroForOne,
-                amountSpecified: -int256(uint256(150_000 ether)),
-                sqrtPriceLimitX96: target
+                zeroForOne: zeroForOne, amountSpecified: -int256(uint256(150_000 ether)), sqrtPriceLimitX96: target
             }),
             PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
             ""
@@ -224,19 +231,20 @@ contract RediSwapBacktestTest is Deployers {
 
     function _swapTraderExactIn(PoolKey memory key, bool zeroForOne, uint256 amountIn) internal returns (uint256) {
         uint160 current = _currentSqrtPrice(key);
-        uint160 limit = zeroForOne
-            ? uint160((uint256(current) * 9995) / 10_000)
-            : uint160((uint256(current) * 10_005) / 10_000);
+        uint160 limit =
+            zeroForOne ? uint160((uint256(current) * 9995) / 10_000) : uint160((uint256(current) * 10_005) / 10_000);
         if (limit > TickMath.MAX_SQRT_PRICE) limit = TickMath.MAX_SQRT_PRICE;
         if (limit < TickMath.MIN_SQRT_PRICE) limit = TickMath.MIN_SQRT_PRICE;
 
         vm.prank(trader);
         int256 delta0 = swapRouter.swap(
-            key,
-            IPoolManager.SwapParams({zeroForOne: zeroForOne, amountSpecified: -int256(amountIn), sqrtPriceLimitX96: limit}),
-            PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
-            ""
-        ).amount1();
+                key,
+                IPoolManager.SwapParams({
+                zeroForOne: zeroForOne, amountSpecified: -int256(amountIn), sqrtPriceLimitX96: limit
+            }),
+                PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+                ""
+            ).amount1();
 
         return delta0 > 0 ? uint256(delta0) : 0;
     }
@@ -248,9 +256,7 @@ contract RediSwapBacktestTest is Deployers {
         swapRouter.swap(
             key,
             IPoolManager.SwapParams({
-                zeroForOne: true,
-                amountSpecified: -int256(uint256(200_000 ether)),
-                sqrtPriceLimitX96: frontrunTarget
+                zeroForOne: true, amountSpecified: -int256(uint256(200_000 ether)), sqrtPriceLimitX96: frontrunTarget
             }),
             PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
             ""
@@ -271,9 +277,7 @@ contract RediSwapBacktestTest is Deployers {
         swapRouter.swap(
             key,
             IPoolManager.SwapParams({
-                zeroForOne: false,
-                amountSpecified: -int256(uint256(200_000 ether)),
-                sqrtPriceLimitX96: originalPrice
+                zeroForOne: false, amountSpecified: -int256(uint256(200_000 ether)), sqrtPriceLimitX96: originalPrice
             }),
             PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
             ""
@@ -295,7 +299,9 @@ contract RediSwapBacktestTest is Deployers {
 
             RediSwapSandwichHook.AuctionResult memory preview = hook.previewAuction(
                 hookedKey,
-                IPoolManager.SwapParams({zeroForOne: true, amountSpecified: -int256(0.1 ether), sqrtPriceLimitX96: target})
+                IPoolManager.SwapParams({
+                    zeroForOne: true, amountSpecified: -int256(0.1 ether), sqrtPriceLimitX96: target
+                })
             );
             uint160 frontrunTarget = uint160(preview.targetSqrtPriceX96);
 

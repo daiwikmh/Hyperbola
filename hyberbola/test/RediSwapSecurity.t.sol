@@ -128,7 +128,11 @@ contract RediSwapGriefingTest is Deployers {
         for (uint256 i; i < 200_000; i++) {
             salt = bytes32(i);
             predicted = address(
-                uint160(uint256(keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))))
+                uint160(
+                    uint256(
+                        keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))
+                    )
+                )
             );
             if (uint160(predicted) & Hooks.ALL_HOOK_MASK == flags && predicted.code.length == 0) break;
         }
@@ -143,7 +147,9 @@ contract RediSwapGriefingTest is Deployers {
         int24 upper = TickMath.maxUsableTick(TICK_SPACING);
         modifyLiquidityRouter.modifyLiquidity(
             key,
-            IPoolManager.ModifyLiquidityParams({tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0}),
+            IPoolManager.ModifyLiquidityParams({
+                tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0
+            }),
             ""
         );
 

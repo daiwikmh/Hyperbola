@@ -44,7 +44,11 @@ contract RediSwapLVRTest is Deployers {
         for (uint256 i; i < 200_000; i++) {
             salt = bytes32(i);
             predicted = address(
-                uint160(uint256(keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))))
+                uint160(
+                    uint256(
+                        keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, keccak256(creationCodeWithArgs)))
+                    )
+                )
             );
             if (uint160(predicted) & Hooks.ALL_HOOK_MASK == flags && predicted.code.length == 0) break;
         }
@@ -59,7 +63,9 @@ contract RediSwapLVRTest is Deployers {
         int24 upper = TickMath.maxUsableTick(TICK_SPACING);
         modifyLiquidityRouter.modifyLiquidity(
             key,
-            IPoolManager.ModifyLiquidityParams({tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0}),
+            IPoolManager.ModifyLiquidityParams({
+                tickLower: lower, tickUpper: upper, liquidityDelta: 1000 ether, salt: 0
+            }),
             ""
         );
 
@@ -100,7 +106,7 @@ contract RediSwapLVRTest is Deployers {
     }
 
     function test_settleLVR_singleHighQuoter_movesPriceTowardBelief() public {
-        _postQuote(arbHigh, 1.10e18);
+        _postQuote(arbHigh, 1.1e18);
 
         uint160 before = _sqrtPrice();
         hook.settleLVR(key);
@@ -110,7 +116,7 @@ contract RediSwapLVRTest is Deployers {
     }
 
     function test_settleLVR_singleLowQuoter_movesPriceTowardBelief() public {
-        _postQuote(arbLow, 0.90e18);
+        _postQuote(arbLow, 0.9e18);
 
         uint160 before = _sqrtPrice();
         hook.settleLVR(key);
@@ -120,7 +126,7 @@ contract RediSwapLVRTest is Deployers {
     }
 
     function test_settleLVR_winnerIsMoreExtremeBelief_paysLPs() public {
-        _postQuote(arbHigh, 1.20e18);
+        _postQuote(arbHigh, 1.2e18);
         _postQuote(arbLow, 1.01e18);
 
         uint256 vaultBalBefore0 = vault.balanceOf(arbHigh, currency0);
@@ -136,7 +142,7 @@ contract RediSwapLVRTest is Deployers {
     }
 
     function test_settleLVR_isIdempotent_secondCallIsNoop() public {
-        _postQuote(arbHigh, 1.10e18);
+        _postQuote(arbHigh, 1.1e18);
 
         hook.settleLVR(key);
         uint160 afterFirst = _sqrtPrice();
@@ -148,7 +154,7 @@ contract RediSwapLVRTest is Deployers {
     }
 
     function test_settleLVR_permissionless_anyoneCanCall() public {
-        _postQuote(arbHigh, 1.10e18);
+        _postQuote(arbHigh, 1.1e18);
 
         vm.prank(makeAddr("randomKeeper"));
         hook.settleLVR(key);
