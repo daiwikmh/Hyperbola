@@ -1,0 +1,252 @@
+---
+import katex from 'katex';
+import { derivation } from '../lib/derivation';
+
+const steps = derivation.map((step) => ({
+	...step,
+	html: step.tex.map((tex) => katex.renderToString(tex, { displayMode: true, throwOnError: false })),
+}));
+---
+
+<aside class="card" aria-label="Optimal front-run derivation">
+	<div class="viewport">
+		{
+			steps.map((step) => (
+				<article class="step">
+					<span class="kicker" style="--i: 0">
+						{step.kicker}
+					</span>
+					{step.html.map((html, n) => (
+						<div class="tex" style={`--i: ${n + 1}`} set:html={html} />
+					))}
+					{step.note && (
+						<p class="note" style={`--i: ${step.html.length + 1}`}>
+							{step.note}
+						</p>
+					)}
+				</article>
+			))
+		}
+	</div>
+
+	<div class="rail"><span class="rail-fill"></span></div>
+</aside>
+
+<style>
+	.card {
+		position: fixed;
+		top: var(--gap);
+		right: var(--gap);
+		bottom: var(--gap);
+		width: calc(100% - var(--col-left) - var(--gap) * 2);
+		border-radius: var(--step-3);
+		overflow: hidden;
+		isolation: isolate;
+		background: linear-gradient(180deg, #f5f0e5 0%, var(--card) 55%, #eae2d1 100%);
+		color: var(--card-ink);
+	}
+
+	.viewport {
+		position: relative;
+		z-index: 1;
+		height: 100%;
+	}
+
+	.step {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: var(--step-5) var(--step-4);
+		visibility: hidden;
+	}
+
+	.step.is-active {
+		visibility: visible;
+	}
+
+	.step > * {
+		opacity: 0;
+		transform: translateY(22px);
+		transition:
+			opacity 520ms ease,
+			transform 620ms cubic-bezier(0.2, 0.7, 0.2, 1);
+		transition-delay: calc(var(--i) * 80ms);
+	}
+
+	.step.is-active > * {
+		transform: none;
+	}
+
+	.kicker {
+		font-size: 12px;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		margin-bottom: var(--step-4);
+	}
+
+	.step.is-active .kicker {
+		opacity: 0.5;
+	}
+
+	.tex {
+		margin: var(--step-2) 0;
+		font-size: 22px;
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	.step.is-active .tex {
+		opacity: 1;
+	}
+
+	.tex :global(.katex-display) {
+		margin: 0;
+		text-align: left;
+	}
+
+	.tex :global(.katex-display > .katex) {
+		display: inline-block;
+		text-align: left;
+	}
+
+	.note {
+		margin-top: var(--step-4);
+		max-width: 42ch;
+		font-size: 15px;
+		line-height: 1.5;
+	}
+
+	.step.is-active .note {
+		opacity: 0.62;
+	}
+
+	.rail {
+		position: absolute;
+		z-index: 2;
+		top: var(--step-4);
+		bottom: var(--step-4);
+		right: var(--step-2);
+		width: 2px;
+		border-radius: 2px;
+		background: rgba(33, 28, 20, 0.14);
+	}
+
+	.rail-fill {
+		display: block;
+		width: 100%;
+		height: var(--progress, 0%);
+		border-radius: 2px;
+		background: rgba(33, 28, 20, 0.5);
+	}
+
+	@media (max-width: 900px) {
+		.card {
+			top: auto;
+			left: var(--gap);
+			width: auto;
+			height: var(--card-h);
+			box-shadow: 0 -24px 40px rgba(13, 13, 13, 0.85);
+		}
+
+		.step {
+			padding: var(--step-4) var(--step-3);
+		}
+
+		.kicker {
+			margin-bottom: var(--step-3);
+		}
+
+		.note {
+			margin-top: var(--step-3);
+			font-size: 13px;
+		}
+
+		.rail {
+			top: var(--step-3);
+			bottom: var(--step-3);
+			right: var(--step-1);
+		}
+	}
+</style>
+
+<script>
+	const MAX_TEX = 46;
+	const MIN_TEX = 15;
+
+	const card = document.querySelector<HTMLElement>('.card');
+	const fill = card?.querySelector<HTMLElement>('.rail-fill');
+	const steps = Array.from(card?.querySelectorAll<HTMLElement>('.step') ?? []);
+
+	if (card && fill && steps.length) {
+		let active = -1;
+
+		const fit = () => {
+			for (const step of steps) {
+				const blocks = Array.from(step.querySelectorAll<HTMLElement>('.tex'));
+				if (!blocks.length) continue;
+
+				const wasHidden = !step.classList.contains('is-active');
+				if (wasHidden) step.style.visibility = 'hidden';
+				step.classList.add('is-active');
+
+				let ratio = Infinity;
+				let base = 0;
+
+				for (const block of blocks) {
+					block.style.fontSize = '';
+					const math = block.querySelector<HTMLElement>('.katex');
+					const width = math?.getBoundingClientRect().width ?? 0;
+					if (!width) continue;
+					base = parseFloat(getComputedStyle(block).fontSize);
+					ratio = Math.min(ratio, block.clientWidth / width);
+				}
+
+				if (base && Number.isFinite(ratio)) {
+					const size = Math.min(MAX_TEX, Math.max(MIN_TEX, base * ratio));
+					for (const block of blocks) block.style.fontSize = `${size}px`;
+				}
+
+				if (wasHidden) {
+					step.classList.remove('is-active');
+					step.style.visibility = '';
+				}
+			}
+		};
+
+		const draw = () => {
+			const travel = document.documentElement.scrollHeight - window.innerHeight;
+			const p = travel > 0 ? Math.min(1, Math.max(0, window.scrollY / travel)) : 0;
+
+			fill.style.setProperty('--progress', `${p * 100}%`);
+
+			const next = Math.min(steps.length - 1, Math.floor(p * steps.length));
+			if (next === active) return;
+			steps[active]?.classList.remove('is-active');
+			steps[next].classList.add('is-active');
+			active = next;
+		};
+
+		let queued = false;
+		const schedule = () => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(() => {
+				queued = false;
+				draw();
+			});
+		};
+
+		const remeasure = () => {
+			fit();
+			draw();
+		};
+
+		fit();
+		draw();
+		window.addEventListener('scroll', schedule, { passive: true });
+		window.addEventListener('resize', remeasure);
+		document.fonts?.ready.then(remeasure);
+	}
+</script>

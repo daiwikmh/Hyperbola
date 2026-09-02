@@ -1,0 +1,468 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MathCard from '../components/MathCard.astro';
+import Marquee from '../components/Marquee.astro';
+
+const plan = [
+	'Measure the extractable value in a trade, on-chain, before it settles.',
+	'Auction it at second price, so bidding an honest belief is what wins.',
+	'Return the proceeds to the swapper and the liquidity providers.',
+];
+
+const parameters = [
+	['MIN_STAKE', '0.1 ETH', 'Bond an arbitrageur posts before any quote of theirs counts as live.'],
+	['MAX_ACTIVE_QUOTERS', '32', 'Per pool. Caps the loop the hook walks inside beforeSwap.'],
+	['MAX_QUOTE_DURATION', '5 minutes', 'Longest a belief stays valid. Stale prices expire themselves.'],
+	['Hook permissions', 'beforeSwap · afterSwap · afterSwapReturnDelta', 'The three flags mined into the hook address.'],
+];
+
+const without = [
+	'A searcher sees your swap coming and moves ahead of it.',
+	'They decide on their own what the position in front of you is worth.',
+	'Whatever they take out, they keep.',
+	'You find out what it cost you by reading your own fill.',
+];
+
+const with_ = [
+	'A searcher still moves ahead of it. That part does not change.',
+	'The pool makes them outbid everyone else who wanted the same spot.',
+	'They hand over what the next bidder would have paid.',
+	'That payment lands back in your trade before it settles.',
+];
+
+const cards = [
+	{
+		title: 'We stopped trying to hide',
+		body: 'Most answers to this ask you to trust something new — a private relay, an encrypted mempool, someone’s reputation. We took the opposite bet and assumed your trade is visible to everyone, because it usually is.',
+	},
+	{
+		title: 'We turned a toll into a market',
+		body: 'One searcher standing in front of your trade is a tax with no ceiling. A dozen of them competing for that spot is an auction, and auctions have a clearing price you can actually reason about.',
+	},
+	{
+		title: 'We made honesty the winning move',
+		body: 'Whoever wins pays what the runner-up offered, never their own number. Quote below what you think it is worth and you gain nothing — you just lose the trades you wanted.',
+	},
+	{
+		title: 'We sent the money home',
+		body: 'Nothing leaves through a side door. What gets paid goes back into the pool it came from: to the person who made the trade, or to the people whose liquidity absorbed it.',
+	},
+];
+---
+
+<Layout
+	title="Hyberbola"
+	description="A Uniswap v4 hook that auctions the MEV in every trade and returns it to swappers and LPs."
+>
+	<MathCard />
+
+	<main>
+		<header class="bar">
+			<span class="mark">Hyberbola</span>
+		</header>
+
+		<section class="hero">
+			<div class="headline-wrap">
+				<Marquee />
+				<h1>We are building the hook that gives <em>the sandwich back.</em></h1>
+			</div>
+		</section>
+
+		<section class="prose">
+			<p>
+				Every trade that moves a constant-product pool carries extractable value, and today it
+				goes to whoever is fastest. Blocking that has been tried from every direction — private
+				relays, encrypted mempools, fee surcharges — and each one asks you to trust something
+				new. None of them change the fact that the value exists.
+			</p>
+			<p>
+				So do not fight it. Price it. The card on the right measures exactly how much value a
+				trade holds, then hands it to whoever will pay the most for it — and routes that payment
+				straight back into the pool it came from.
+			</p>
+			<p>
+				The value is not an estimate. It falls out of the pool's own invariant, it is computed
+				on-chain before the swap settles, and it is bounded above by a quantity anyone can check.
+			</p>
+		</section>
+
+		<section class="plan">
+			<ol>
+				{
+					plan.map((item, i) => (
+						<li>
+							<span class="num">{i + 1}</span>
+							<span>{item}</span>
+						</li>
+					))
+				}
+			</ol>
+		</section>
+
+		<section class="prose">
+			<p>
+				Hyberbola is a Uniswap v4 hook. Arbitrageurs stake, then post the price they actually
+				believe a pair is worth. When a swap arrives, the hook scores every live belief against
+				that specific trade, and the highest bidder wins the right to run the bundle — the
+				front-run, the user's swap, and the unwind, all inside one atomic callback.
+			</p>
+			<p>
+				The winner pays the runner-up's valuation rather than their own, so there is nothing to
+				gain from shading a bid. What they pay does not leave the pool: on the trade path it
+				settles back to the swapper as a refund, and on the rebalancing path it is donated
+				directly to liquidity providers.
+			</p>
+			<p>
+				What the winner keeps is only the distance between the best belief and the second-best.
+				Add arbitrageurs and that margin compresses. The extraction never stops — it just stops
+				being a transfer away from the people who created the trade.
+			</p>
+		</section>
+
+		<section class="params">
+			<h2>Parameters, as deployed</h2>
+			<dl>
+				{
+					parameters.map(([name, value, note]) => (
+						<div class="param">
+							<dt>{name}</dt>
+							<dd class="param-value">{value}</dd>
+							<dd class="param-note">{note}</dd>
+						</div>
+					))
+				}
+			</dl>
+		</section>
+
+		<section class="quote">
+			<blockquote>The MEV was never the problem. Who kept it was.</blockquote>
+		</section>
+
+		<section class="versus">
+			<h2>Same trade, two worlds</h2>
+			<div class="versus-grid">
+				<div class="versus-col">
+					<span class="versus-label">On an ordinary pool</span>
+					<ol>
+						{without.map((line) => <li>{line}</li>)}
+					</ol>
+				</div>
+				<div class="versus-col versus-col-lit">
+					<span class="versus-label">On this one</span>
+					<ol>
+						{with_.map((line) => <li>{line}</li>)}
+					</ol>
+				</div>
+			</div>
+		</section>
+
+		<section class="cards">
+			<h2>What we did</h2>
+			<div class="card-grid">
+				{
+					cards.map((card) => (
+						<article class="ecard">
+							<h3>{card.title}</h3>
+							<p>{card.body}</p>
+						</article>
+					))
+				}
+			</div>
+		</section>
+
+		<section class="status">
+			<h2>Status</h2>
+			<p>
+				The contracts are written and tested. Nothing is deployed to a public network yet, so
+				there is no address to give you and no audit to point at. The hook console reads whatever
+				deployment you point it at, including a local anvil node.
+			</p>
+			<p>
+				One known issue: with zero active liquidity the limit-state calculation divides by the raw
+				liquidity value, which reverts the swap. It is reachable whenever every position sits
+				outside the current tick.
+			</p>
+			<a class="cta" href="/dashboard">Open the hook console →</a>
+		</section>
+
+		<footer>
+			<span class="dim">Uniswap v4 hook · MIT</span>
+			<a href="/dashboard">Hook console</a>
+		</footer>
+	</main>
+</Layout>
+
+<style>
+	main {
+		width: var(--col-left);
+		padding: 0 var(--step-6) 0 var(--step-5);
+	}
+
+	section {
+		padding-bottom: var(--step-7);
+	}
+
+	.bar {
+		padding: var(--step-4) 0 0;
+	}
+
+	.mark {
+		font-style: italic;
+		font-size: 20px;
+		letter-spacing: -0.02em;
+	}
+
+	.hero {
+		display: flex;
+		align-items: center;
+		min-height: calc(100vh - var(--step-6));
+		padding-bottom: var(--step-6);
+	}
+
+	.headline-wrap {
+		position: relative;
+		width: 100%;
+	}
+
+	h1 {
+		position: relative;
+		z-index: 1;
+		max-width: 22ch;
+		font-size: var(--hl-size);
+		line-height: var(--hl-lead);
+		letter-spacing: -0.025em;
+	}
+
+	h1 em {
+		font-style: normal;
+		color: #d9a066;
+	}
+
+	.prose p + p {
+		margin-top: var(--step-3);
+	}
+
+	.prose p {
+		max-width: 62ch;
+	}
+
+	.plan ol li {
+		display: flex;
+		gap: var(--step-3);
+		max-width: 62ch;
+		padding: var(--step-2) 0;
+		border-top: 1px solid var(--rule);
+	}
+
+	.plan ol li:last-child {
+		border-bottom: 1px solid var(--rule);
+	}
+
+	.num {
+		flex: none;
+		width: 1.5rem;
+		color: var(--ink-faint);
+	}
+
+	h2 {
+		margin-bottom: var(--step-4);
+		font-size: var(--type-body);
+		color: var(--ink-dim);
+	}
+
+	dl {
+		margin: 0;
+		max-width: 62ch;
+	}
+
+	.param {
+		display: grid;
+		grid-template-columns: 15rem 1fr;
+		gap: 2px var(--step-3);
+		padding: var(--step-2) 0;
+		border-top: 1px solid var(--rule);
+	}
+
+	.param:last-child {
+		border-bottom: 1px solid var(--rule);
+	}
+
+	dt {
+		grid-row: span 2;
+		font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+		font-size: 13px;
+		color: var(--ink-dim);
+	}
+
+	dd {
+		margin: 0;
+	}
+
+	.param-note {
+		color: var(--ink-faint);
+	}
+
+	.quote blockquote {
+		max-width: 20ch;
+		margin: 0;
+		font-size: clamp(24px, 2.6vw, 36px);
+		line-height: 1.2;
+		letter-spacing: -0.02em;
+		color: var(--ink);
+	}
+
+	.versus-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--step-3);
+		max-width: 68ch;
+	}
+
+	.versus-col {
+		padding: var(--step-3);
+		border: 1px solid var(--rule);
+		border-radius: 12px;
+	}
+
+	.versus-col-lit {
+		border-color: rgba(217, 160, 102, 0.35);
+		background: rgba(217, 160, 102, 0.045);
+	}
+
+	.versus-label {
+		display: block;
+		margin-bottom: var(--step-3);
+		font-size: 12px;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--ink-faint);
+	}
+
+	.versus-col-lit .versus-label {
+		color: #d9a066;
+	}
+
+	.versus-col ol {
+		counter-reset: step;
+	}
+
+	.versus-col li {
+		position: relative;
+		padding: 0 0 var(--step-3) var(--step-4);
+		counter-increment: step;
+		color: var(--ink-dim);
+	}
+
+	.versus-col li:last-child {
+		padding-bottom: 0;
+	}
+
+	.versus-col li::before {
+		position: absolute;
+		left: 0;
+		content: counter(step);
+		color: var(--ink-faint);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.versus-col-lit li {
+		color: var(--ink);
+	}
+
+	.card-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--step-3);
+		max-width: 68ch;
+	}
+
+	.ecard {
+		padding: var(--step-3);
+		border: 1px solid var(--rule);
+		border-radius: 12px;
+		transition: border-color 200ms ease;
+	}
+
+	.ecard:hover {
+		border-color: #3d3d3d;
+	}
+
+	.ecard h3 {
+		margin-bottom: var(--step-2);
+		font-size: 17px;
+		font-weight: 300;
+		letter-spacing: -0.015em;
+	}
+
+	.ecard p {
+		color: var(--ink-dim);
+	}
+
+	.dim {
+		color: var(--ink-faint);
+	}
+
+	.status p {
+		max-width: 62ch;
+	}
+
+	.status p + p {
+		margin-top: var(--step-3);
+	}
+
+	.cta {
+		display: inline-block;
+		margin-top: var(--step-4);
+		padding-bottom: 3px;
+		border-bottom: 1px solid var(--rule);
+	}
+
+	.cta:hover {
+		border-color: var(--ink-dim);
+	}
+
+	.fine {
+		margin-top: var(--step-3);
+		max-width: 46ch;
+		color: var(--ink-faint);
+	}
+
+	footer {
+		display: flex;
+		gap: var(--step-5);
+		padding: var(--step-4) 0 var(--step-5);
+		border-top: 1px solid var(--rule);
+	}
+
+	footer a:last-child {
+		margin-left: auto;
+	}
+
+	@media (max-width: 900px) {
+		main {
+			width: auto;
+			padding: 0 var(--gap) calc(var(--card-h) + var(--step-4));
+		}
+
+		.hero {
+			min-height: calc(100vh - var(--card-h) - var(--step-5));
+		}
+
+		section {
+			padding-bottom: var(--step-6);
+		}
+
+		.param {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		dt {
+			grid-row: auto;
+		}
+
+		.versus-grid,
+		.card-grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>
