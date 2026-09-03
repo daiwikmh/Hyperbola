@@ -95,12 +95,9 @@ const { title, description } = Astro.props;
 		color: var(--ink);
 	}
 
-	.nav-mark::before {
-		content: '';
-		width: 20px;
-		height: 20px;
-		border-radius: 7px 7px 7px 2px;
-		background: linear-gradient(135deg, var(--accent), #1f8f4c);
+	.nav-glyph {
+		flex: none;
+		color: var(--ink);
 	}
 
 	.nav-links {
@@ -804,6 +801,12 @@ const { title, description } = Astro.props;
 		font-size: 11.5px;
 		letter-spacing: 0.06em;
 		color: var(--ink-faint);
+	}
+
+	.foot-mark {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
 	}
 
 	/* ---------- legacy scope (Pools keeps the previous look) ---------- */

@@ -24,6 +24,24 @@ if (typeof (BigInt.prototype as WithToJSON).toJSON !== 'function') {
 
 export type Page = 'swap' | 'pools' | 'positions' | 'transactions';
 
+const LOGO_PATH =
+	'M30 35 Q30 30 35 30 Q50 58 65 30 Q70 30 70 35 L70 65 Q70 70 65 70 Q50 42 35 70 Q30 70 30 65 Z';
+
+function Glyph({ size = 20, className }: { size?: number; className?: string }) {
+	return (
+		<svg
+			className={className}
+			width={size}
+			height={size}
+			viewBox="0 0 100 100"
+			fill="none"
+			aria-hidden="true"
+		>
+			<path d={LOGO_PATH} fill="currentColor" />
+		</svg>
+	);
+}
+
 const NAV: [Page, string][] = [
 	['swap', 'Swap'],
 	['pools', 'Pools'],
@@ -204,6 +222,7 @@ function Nav({ page }: { page: Page }) {
 	return (
 		<header className="nav">
 			<a className="nav-mark" href="/">
+				<Glyph className="nav-glyph" />
 				Hyberbola
 			</a>
 			<nav className="nav-links">
@@ -250,7 +269,10 @@ function Footer() {
 			<span>
 				{REQUIRED_CHAIN.name.toUpperCase()} · CHAIN ID {REQUIRED_CHAIN.id}
 			</span>
-			<span className="dim">Hyberbola · Uniswap v4 hook</span>
+			<span className="dim foot-mark">
+				<Glyph size={13} />
+				Hyberbola · Uniswap v4 hook
+			</span>
 		</footer>
 	);
 }

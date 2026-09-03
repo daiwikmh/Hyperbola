@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="web/public/logo.svg" alt="Hyberbola" width="76" />
+
 # Hyberbola
 
 ### The Uniswap v4 hook that only steps in to make your fill better.

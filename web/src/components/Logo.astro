@@ -1,0 +1,22 @@
+---
+interface Props {
+	class?: string;
+	size?: number;
+}
+const { class: className, size = 22 } = Astro.props;
+---
+
+<svg
+	class={className}
+	width={size}
+	height={size}
+	viewBox="0 0 100 100"
+	fill="none"
+	role="img"
+	aria-label="Hyberbola"
+>
+	<path
+		d="M30 35 Q30 30 35 30 Q50 58 65 30 Q70 30 70 35 L70 65 Q70 70 65 70 Q50 42 35 70 Q30 70 30 65 Z"
+		fill="currentColor"
+	></path>
+</svg>

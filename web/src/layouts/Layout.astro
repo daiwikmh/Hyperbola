@@ -15,8 +15,13 @@ const { title, description } = Astro.props;
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="apple-touch-icon" href="/logo.jpg" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content="/logo.jpg" />
+		<meta name="twitter:card" content="summary" />
 		<title>{title}</title>
 	</head>
 	<body>

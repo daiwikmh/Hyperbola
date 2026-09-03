@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import MathCard from '../components/MathCard.astro';
 import Marquee from '../components/Marquee.astro';
+import Logo from '../components/Logo.astro';
 
 const plan = [
 	'Read the competitive fair-price region from the quote book, on-chain, before the swap settles.',
@@ -68,7 +69,11 @@ const cards = [
 
 	<main>
 		<header class="bar">
-			<span class="mark">Hyberbola</span>
+			<a class="mark" href="/">
+				<Logo class="mark-glyph" size={24} />
+				<span>Hyberbola</span>
+			</a>
+			<a class="bar-cta" href="/swap">Open Console →</a>
 		</header>
 
 		<section class="hero">
@@ -225,13 +230,43 @@ const cards = [
 	}
 
 	.bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 		padding: var(--step-4) 0 0;
 	}
 
 	.mark {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
 		font-style: italic;
 		font-size: 20px;
 		letter-spacing: -0.02em;
+		color: var(--ink);
+	}
+
+	.mark-glyph {
+		color: var(--ink);
+		flex: none;
+	}
+
+	.bar-cta {
+		flex: none;
+		padding: 8px 15px;
+		font-size: 13px;
+		letter-spacing: 0.01em;
+		color: var(--ink-dim);
+		border: 1px solid var(--rule);
+		border-radius: 999px;
+		transition:
+			color 160ms ease,
+			border-color 160ms ease;
+	}
+
+	.bar-cta:hover {
+		color: var(--ink);
+		border-color: var(--ink-dim);
 	}
 
 	.hero {
