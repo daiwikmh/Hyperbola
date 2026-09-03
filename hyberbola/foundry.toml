@@ -8,3 +8,12 @@ libs = ["lib"]
 solc_version = "0.8.26"
 evm_version = "cancun"
 ffi = true
+via_ir = true
+optimizer = true
+optimizer_runs = 200
+
+[rpc_endpoints]
+unichain_sepolia = "${RPC_URL}"
+
+[etherscan]
+unichain_sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://unichain-sepolia.blockscout.com/api", chain = 1301 }

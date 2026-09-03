@@ -1,0 +1,8 @@
+---
+import Console from '../layouts/Console.astro';
+import ConsolePage from '../components/dash/ConsolePage';
+---
+
+<Console title="Hyberbola — Transactions" description="The auction the hook runs on every swap, and the permissionless LVR rebalance.">
+	<ConsolePage page="transactions" client:only="react" />
+</Console>

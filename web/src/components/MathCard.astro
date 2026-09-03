@@ -8,7 +8,7 @@ const steps = derivation.map((step) => ({
 }));
 ---
 
-<aside class="card" aria-label="Optimal front-run derivation">
+<aside class="card" aria-label="Conditional partial-fill derivation">
 	<div class="viewport">
 		{
 			steps.map((step) => (
@@ -19,8 +19,11 @@ const steps = derivation.map((step) => ({
 					{step.html.map((html, n) => (
 						<div class="tex" style={`--i: ${n + 1}`} set:html={html} />
 					))}
+					{step.figure && (
+						<div class="figure" style={`--i: ${step.html.length + 1}`} set:html={step.figure} />
+					)}
 					{step.note && (
-						<p class="note" style={`--i: ${step.html.length + 1}`}>
+						<p class="note" style={`--i: ${step.html.length + 2}`}>
 							{step.note}
 						</p>
 					)}
@@ -34,6 +37,7 @@ const steps = derivation.map((step) => ({
 
 <style>
 	.card {
+		--fig-accent: #b5651d;
 		position: fixed;
 		top: var(--gap);
 		right: var(--gap);
@@ -44,6 +48,100 @@ const steps = derivation.map((step) => ({
 		isolation: isolate;
 		background: linear-gradient(180deg, #f5f0e5 0%, var(--card) 55%, #eae2d1 100%);
 		color: var(--card-ink);
+	}
+
+	.figure {
+		margin-top: var(--step-3);
+		max-width: 300px;
+	}
+
+	.step.is-active .figure {
+		opacity: 1;
+	}
+
+	.figure :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+	}
+
+	.figure :global(.fig-curve) {
+		fill: none;
+		stroke: var(--card-ink);
+		stroke-width: 2;
+		stroke-linecap: round;
+		opacity: 0.85;
+	}
+
+	.figure :global(.fig-axis) {
+		stroke: var(--card-ink);
+		stroke-width: 1;
+		opacity: 0.22;
+	}
+
+	.figure :global(.fig-label),
+	.figure :global(.fig-axis-label) {
+		fill: var(--card-ink);
+		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-size: 10px;
+		opacity: 0.7;
+	}
+
+	.figure :global(.fig-line) {
+		stroke: var(--card-ink);
+		stroke-width: 1.25;
+		opacity: 0.42;
+	}
+
+	.figure :global(.fig-line-dash) {
+		stroke: var(--card-ink);
+		stroke-width: 1.25;
+		opacity: 0.42;
+		stroke-dasharray: 3 3;
+	}
+
+	.figure :global(.fig-area) {
+		fill: var(--fig-accent);
+		stroke: none;
+		opacity: 0.16;
+	}
+
+	.figure :global(.fig-mark) {
+		fill: var(--fig-accent);
+	}
+
+	.figure :global(.fig-dot) {
+		fill: var(--card-ink);
+		opacity: 0.55;
+	}
+
+	.figure :global(.fig-bar) {
+		fill: var(--card-ink);
+		opacity: 0.16;
+	}
+
+	.figure :global(.fig-bar-hi) {
+		fill: var(--fig-accent);
+		opacity: 0.5;
+	}
+
+	.figure :global(.fig-brace) {
+		stroke: var(--card-ink);
+		stroke-width: 1.5;
+		opacity: 0.4;
+	}
+
+	.figure :global(.fig-cut) {
+		stroke: var(--fig-accent);
+		stroke-width: 1.5;
+		stroke-dasharray: 4 3;
+	}
+
+	.figure :global(.fig-vec) {
+		fill: none;
+		stroke: var(--fig-accent);
+		stroke-width: 1.75;
 	}
 
 	.viewport {

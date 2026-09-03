@@ -4,55 +4,65 @@ import MathCard from '../components/MathCard.astro';
 import Marquee from '../components/Marquee.astro';
 
 const plan = [
-	'Measure the extractable value in a trade, on-chain, before it settles.',
-	'Auction it at second price, so bidding an honest belief is what wins.',
-	'Return the proceeds to the swapper and the liquidity providers.',
+	'Read the competitive fair-price region from the quote book, on-chain, before the swap settles.',
+	'Step in only when the trade is being filled on the wrong side of it — never when it moves toward fair.',
+	'Fill part of the order from the hook’s buffer at a better price; recover the cost from solvers; send the surplus to LPs.',
 ];
 
 const parameters = [
-	['MIN_STAKE', '0.1 ETH', 'Bond an arbitrageur posts before any quote of theirs counts as live.'],
-	['MAX_ACTIVE_QUOTERS', '32', 'Per pool. Caps the loop the hook walks inside beforeSwap.'],
+	['Arbitrageur commits', 'a stake + a quote', 'No inventory, no custody. Capital is committed only for the seconds it takes to sweep the hook’s inventory after winning.'],
+	['MAX_FILL_BPS', '30% of the order', 'The largest share of a swap the hook will fill from its own buffer. The rest routes to the pool as a smaller trade.'],
+	['HOOK_EDGE_BPS', '20% of the gap', 'Margin the hook keeps between the pool price and the runner-up belief. Lower ⇒ better for the swapper, thinner for LPs.'],
+	['MIN_STAKE', '0.1 ETH', 'Bond posted before a quote counts as live — slashing collateral, never working capital.'],
 	['MAX_QUOTE_DURATION', '5 minutes', 'Longest a belief stays valid. Stale prices expire themselves.'],
-	['Hook permissions', 'beforeSwap · afterSwap · afterSwapReturnDelta', 'The three flags mined into the hook address.'],
+	['Hook permissions', 'beforeSwap · beforeSwapReturnDelta', 'The two flags mined into the hook address. The delta path only ever returns more output per input.'],
 ];
 
 const without = [
-	'A searcher sees your swap coming and moves ahead of it.',
-	'They decide on their own what the position in front of you is worth.',
-	'Whatever they take out, they keep.',
-	'You find out what it cost you by reading your own fill.',
+	'Your trade pushes the pool past what the market thinks the pair is worth.',
+	'The pool fills you at that worse price anyway.',
+	'A searcher arbitrages the gap back afterward and keeps all of it.',
+	'You read your fill and find out what it cost.',
 ];
 
 const with_ = [
-	'A searcher still moves ahead of it. That part does not change.',
-	'The pool makes them outbid everyone else who wanted the same spot.',
-	'They hand over what the next bidder would have paid.',
-	'That payment lands back in your trade before it settles.',
+	'The hook sees the same push — and that your fill is now on the wrong side of fair.',
+	'It fills part of your order itself, at a price between the pool and the runner-up belief.',
+	'Your total output is higher than the plain pool would have given. Always.',
+	'A solver later buys the hook’s position at second price; the surplus goes to LPs.',
 ];
 
 const cards = [
 	{
 		title: 'We stopped trying to hide',
-		body: 'Most answers to this ask you to trust something new — a private relay, an encrypted mempool, someone’s reputation. We took the opposite bet and assumed your trade is visible to everyone, because it usually is.',
+		body: 'Most answers to this ask you to trust something new — a private relay, an encrypted mempool, someone’s reputation. We assume your trade is visible to everyone, because it usually is, and work from there.',
 	},
 	{
-		title: 'We turned a toll into a market',
-		body: 'One searcher standing in front of your trade is a tax with no ceiling. A dozen of them competing for that spot is an auction, and auctions have a clearing price you can actually reason about.',
+		title: 'We only step in when it helps',
+		body: 'The hook checks whether your swap is being filled on the wrong side of the competitive price. If the trade is moving toward fair, the hook does nothing at all — your good trade stays entirely yours.',
 	},
 	{
-		title: 'We made honesty the winning move',
-		body: 'Whoever wins pays what the runner-up offered, never their own number. Quote below what you think it is worth and you gain nothing — you just lose the trades you wanted.',
+		title: 'We priced the intervention off the runner-up',
+		body: 'The hook never uses the best belief to price your fill. It uses the second one, and keeps a fixed margin below it. Bidding your honest number stays the dominant strategy, and one aggressive quote can’t drag the fill.',
 	},
 	{
-		title: 'We sent the money home',
-		body: 'Nothing leaves through a side door. What gets paid goes back into the pool it came from: to the person who made the trade, or to the people whose liquidity absorbed it.',
+		title: 'We guaranteed vanilla-or-better',
+		body: 'The partial fill is priced strictly better than the pool, and what’s left is a smaller, lower-impact swap. There is no input for which the hooked execution comes out worse than the plain pool.',
+	},
+	{
+		title: 'We stopped asking arbitrageurs for capital',
+		body: 'Solvers post a price. When a swap leaves the hook holding inventory, a solver later buys it at second price and hedges externally. Nothing sits in a vault waiting for a trade.',
+	},
+	{
+		title: 'We made thin volatile pairs viable',
+		body: 'Loss-versus-rebalancing is why volatile pools need fat fees, which kills their volume. Route the recaptured value to LPs and the fee no longer has to cover it — a low fee and live liquidity can coexist.',
 	},
 ];
 ---
 
 <Layout
 	title="Hyberbola"
-	description="A Uniswap v4 hook that auctions the MEV in every trade and returns it to swappers and LPs."
+	description="A Uniswap v4 hook that fills part of an unfairly-priced swap itself, at a better price, and routes the recaptured value to LPs."
 >
 	<MathCard />
 
@@ -64,7 +74,7 @@ const cards = [
 		<section class="hero">
 			<div class="headline-wrap">
 				<Marquee />
-				<h1>We are building the hook that gives <em>the sandwich back.</em></h1>
+				<h1>We are building the hook that steps in <em>only to improve your fill.</em></h1>
 			</div>
 		</section>
 
@@ -76,13 +86,15 @@ const cards = [
 				new. None of them change the fact that the value exists.
 			</p>
 			<p>
-				So do not fight it. Price it. The card on the right measures exactly how much value a
-				trade holds, then hands it to whoever will pay the most for it — and routes that payment
-				straight back into the pool it came from.
+				So do not fight it, and do not try to redistribute a loss after the fact. Catch it
+				earlier. The card on the right derives the price the market actually believes a pair is
+				worth, checks whether your swap is being filled on the wrong side of it, and — only then —
+				fills part of your order from the hook's own buffer at a better price.
 			</p>
 			<p>
-				The value is not an estimate. It falls out of the pool's own invariant, it is computed
-				on-chain before the swap settles, and it is bounded above by a quantity anyone can check.
+				The check is not an estimate. The fair region falls out of the pool's invariant and the
+				staked quotes, it is read on-chain before the swap settles, and the fill is priced so that
+				your total execution is never worse than the plain pool.
 			</p>
 		</section>
 
@@ -102,20 +114,28 @@ const cards = [
 		<section class="prose">
 			<p>
 				Hyberbola is a Uniswap v4 hook. Arbitrageurs stake, then post the price they actually
-				believe a pair is worth. When a swap arrives, the hook scores every live belief against
-				that specific trade, and the highest bidder wins the right to run the bundle — the
-				front-run, the user's swap, and the unwind, all inside one atomic callback.
+				believe a pair is worth. The best and second-best live beliefs bracket a fair-price
+				region. When a swap arrives, the hook simulates its vanilla execution and asks one
+				question: does this trade push the pool to the far side of that region?
 			</p>
 			<p>
-				The winner pays the runner-up's valuation rather than their own, so there is nothing to
-				gain from shading a bid. What they pay does not leave the pool: on the trade path it
-				settles back to the swapper as a refund, and on the rebalancing path it is donated
-				directly to liquidity providers.
+				If not — the swap is moving price toward fair, or there are no live beliefs — the hook
+				returns nothing and the swap is an ordinary swap. If it does, the hook fills up to a
+				third of the order itself, from a small hook-owned buffer, at a price set between the pool
+				and the <em>runner-up</em> belief. The rest routes to the pool as a smaller, lower-impact
+				trade.
 			</p>
 			<p>
-				What the winner keeps is only the distance between the best belief and the second-best.
-				Add arbitrageurs and that margin compresses. The extraction never stops — it just stops
-				being a transfer away from the people who created the trade.
+				Because the fill is strictly better than the pool and the remainder has less impact, the
+				swapper's total output beats the vanilla execution — every time the hook acts. Pricing off
+				the second belief, not the first, means no single aggressive quote can move the fill, and
+				honest bidding stays dominant.
+			</p>
+			<p>
+				The fill leaves the hook holding inventory it bought slightly cheap. A solver later sweeps
+				it at the runner-up belief and hedges externally, keeping only the gap to the best belief;
+				the sweep refills the buffer and donates the surplus to the pool's LPs. No vault, no
+				capital sitting idle waiting for a swap.
 			</p>
 		</section>
 
@@ -173,21 +193,23 @@ const cards = [
 		<section class="status">
 			<h2>Status</h2>
 			<p>
-				The contracts are written and tested. Nothing is deployed to a public network yet, so
-				there is no address to give you and no audit to point at. The hook console reads whatever
-				deployment you point it at, including a local anvil node.
+				The contracts are written, tested, and deployed to Unichain Sepolia with a seeded USDC/DAI
+				pool. The console reads that deployment by default, or any other you point it at. No audit
+				to point at yet.
 			</p>
 			<p>
-				One known issue: with zero active liquidity the limit-state calculation divides by the raw
-				liquidity value, which reverts the swap. It is reachable whenever every position sits
-				outside the current tick.
+				The vanilla-or-better floor is structural — it holds no matter what anyone quotes. What is
+				not done hardens the rest: a pool-TWAP floor on the sweep price, so a sybil quoter can’t
+				suppress the LP donation; the external-venue settlement that lets a solver clear the hook’s
+				inventory at scale; fuzz and invariant suites. The swap path — the decision, the partial
+				fill, the floor — is the part that stands.
 			</p>
-			<a class="cta" href="/dashboard">Open the hook console →</a>
+			<a class="cta" href="/swap">Open the console →</a>
 		</section>
 
 		<footer>
 			<span class="dim">Uniswap v4 hook · MIT</span>
-			<a href="/dashboard">Hook console</a>
+			<a href="/swap">Console</a>
 		</footer>
 	</main>
 </Layout>

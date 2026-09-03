@@ -390,386 +390,13 @@ export const registryAbi = [
   }
 ] as const;
 
-export const vaultAbi = [
-  {
-    "type": "function",
-    "name": "balanceOf",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "Currency"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "creditFor",
-    "inputs": [
-      {
-        "name": "arbitrageur",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "currency",
-        "type": "address",
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "deposit",
-    "inputs": [
-      {
-        "name": "currency",
-        "type": "address",
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "hook",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "owner",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "pullFor",
-    "inputs": [
-      {
-        "name": "arbitrageur",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "currency",
-        "type": "address",
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "to",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "actual",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setHook",
-    "inputs": [
-      {
-        "name": "_hook",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "withdraw",
-    "inputs": [
-      {
-        "name": "currency",
-        "type": "address",
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "event",
-    "name": "CreditedByHook",
-    "inputs": [
-      {
-        "name": "arbitrageur",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "currency",
-        "type": "address",
-        "indexed": true,
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Deposited",
-    "inputs": [
-      {
-        "name": "arbitrageur",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "currency",
-        "type": "address",
-        "indexed": true,
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "PulledForHook",
-    "inputs": [
-      {
-        "name": "arbitrageur",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "currency",
-        "type": "address",
-        "indexed": true,
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "to",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Withdrawn",
-    "inputs": [
-      {
-        "name": "arbitrageur",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "currency",
-        "type": "address",
-        "indexed": true,
-        "internalType": "Currency"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "error",
-    "name": "HookAlreadySet",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InsufficientBalance",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotHook",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotOwner",
-    "inputs": []
-  }
-] as const;
-
 export const hookAbi = [
-  {
-    "type": "function",
-    "name": "afterSwap",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "key",
-        "type": "tuple",
-        "internalType": "struct PoolKey",
-        "components": [
-          {
-            "name": "currency0",
-            "type": "address",
-            "internalType": "Currency"
-          },
-          {
-            "name": "currency1",
-            "type": "address",
-            "internalType": "Currency"
-          },
-          {
-            "name": "fee",
-            "type": "uint24",
-            "internalType": "uint24"
-          },
-          {
-            "name": "tickSpacing",
-            "type": "int24",
-            "internalType": "int24"
-          },
-          {
-            "name": "hooks",
-            "type": "address",
-            "internalType": "contract IHooks"
-          }
-        ]
-      },
-      {
-        "name": "",
-        "type": "tuple",
-        "internalType": "struct IPoolManager.SwapParams",
-        "components": [
-          {
-            "name": "zeroForOne",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "amountSpecified",
-            "type": "int256",
-            "internalType": "int256"
-          },
-          {
-            "name": "sqrtPriceLimitX96",
-            "type": "uint160",
-            "internalType": "uint160"
-          }
-        ]
-      },
-      {
-        "name": "",
-        "type": "int256",
-        "internalType": "BalanceDelta"
-      },
-      {
-        "name": "",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes4",
-        "internalType": "bytes4"
-      },
-      {
-        "name": "",
-        "type": "int128",
-        "internalType": "int128"
-      }
-    ],
-    "stateMutability": "nonpayable"
-  },
   {
     "type": "function",
     "name": "beforeSwap",
     "inputs": [
       {
-        "name": "",
+        "name": "swapper",
         "type": "address",
         "internalType": "address"
       },
@@ -854,13 +481,82 @@ export const hookAbi = [
   },
   {
     "type": "function",
-    "name": "frontrunTicks",
+    "name": "buffer",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "Currency"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fundBuffer",
+    "inputs": [
+      {
+        "name": "currency",
+        "type": "address",
+        "internalType": "Currency"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "hookEdgeBps",
     "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "int24",
-        "internalType": "int24"
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "inventory",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "Currency"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "maxFillBps",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -880,7 +576,7 @@ export const hookAbi = [
   },
   {
     "type": "function",
-    "name": "previewAuction",
+    "name": "preview",
     "inputs": [
       {
         "name": "key",
@@ -939,39 +635,54 @@ export const hookAbi = [
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "d",
         "type": "tuple",
-        "internalType": "struct RediSwapSandwichHook.AuctionResult",
+        "internalType": "struct RediSwapHook.Decision",
         "components": [
           {
-            "name": "proceed",
+            "name": "intervene",
             "type": "bool",
             "internalType": "bool"
           },
           {
-            "name": "targetSqrtPriceX96",
+            "name": "fillIn",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "primaryWinner",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "primaryPaymentDue",
+            "name": "fillOut",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "hasSecondary",
-            "type": "bool",
-            "internalType": "bool"
+            "name": "hookPriceWad",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            "name": "secondaryWinner",
+            "name": "vanillaEndSqrtPriceX96",
+            "type": "uint160",
+            "internalType": "uint160"
+          },
+          {
+            "name": "fairSqrtPriceX96",
+            "type": "uint160",
+            "internalType": "uint160"
+          },
+          {
+            "name": "winner",
             "type": "address",
             "internalType": "address"
+          },
+          {
+            "name": "winnerPriceWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "secondPriceWad",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
             "name": "inputCurrency",
@@ -1003,7 +714,26 @@ export const hookAbi = [
   },
   {
     "type": "function",
-    "name": "settleLVR",
+    "name": "spent",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "Currency"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "sweepInventory",
     "inputs": [
       {
         "name": "key",
@@ -1036,15 +766,19 @@ export const hookAbi = [
             "internalType": "contract IHooks"
           }
         ]
-      }
-    ],
-    "outputs": [
+      },
       {
-        "name": "",
+        "name": "sellZero",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "callbackData",
         "type": "bytes",
         "internalType": "bytes"
       }
     ],
+    "outputs": [],
     "stateMutability": "nonpayable"
   },
   {
@@ -1067,17 +801,84 @@ export const hookAbi = [
     "stateMutability": "nonpayable"
   },
   {
-    "type": "function",
-    "name": "vault",
-    "inputs": [],
-    "outputs": [
+    "type": "event",
+    "name": "Filled",
+    "inputs": [
       {
-        "name": "",
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "PoolId"
+      },
+      {
+        "name": "swapper",
         "type": "address",
-        "internalType": "contract ArbitrageurVault"
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "fillIn",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "fillOut",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "hookPriceWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
-    "stateMutability": "view"
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Swept",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "PoolId"
+      },
+      {
+        "name": "keeper",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "sold",
+        "type": "address",
+        "indexed": true,
+        "internalType": "Currency"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "proceeds",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "donated",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "error",
@@ -1087,6 +888,11 @@ export const hookAbi = [
   {
     "type": "error",
     "name": "NotPoolManager",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NothingToSweep",
     "inputs": []
   }
 ] as const;

@@ -14,7 +14,7 @@ contract QuoteRegistryTest is Test {
     address carol = makeAddr("carol");
 
     function setUp() public {
-        registry = new QuoteRegistry();
+        registry = new QuoteRegistry(0.1 ether);
         poolId = PoolId.wrap(bytes32(uint256(1)));
 
         vm.deal(alice, 10 ether);

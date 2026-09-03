@@ -7,8 +7,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: hyberbola
+
 jobs:
-  check:
+  contracts:
     name: Foundry project
     runs-on: ubuntu-latest
     permissions:
@@ -29,7 +33,27 @@ jobs:
         run: forge fmt --check
 
       - name: Run Forge build
-        run: forge build --sizes
+        run: forge build --sizes --skip test
 
       - name: Run Forge tests
         run: forge test -vvv
+
+  web:
+    name: Web build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+      - run: npm run build

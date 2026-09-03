@@ -8,8 +8,7 @@ const target = join(here, '../src/lib/abis.ts');
 
 const contracts = [
 	['QuoteRegistry', 'registryAbi'],
-	['ArbitrageurVault', 'vaultAbi'],
-	['RediSwapSandwichHook', 'hookAbi'],
+	['RediSwapHook', 'hookAbi'],
 ];
 
 let out = '// Generated from hyberbola/out by scripts/sync-abis.mjs. Do not edit by hand.\n\n';

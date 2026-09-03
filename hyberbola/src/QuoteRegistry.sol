@@ -9,7 +9,7 @@ contract QuoteRegistry {
         uint256 expiry;
     }
 
-    uint256 public constant MIN_STAKE = 0.1 ether;
+    uint256 public immutable MIN_STAKE;
     uint256 public constant MAX_ACTIVE_QUOTERS = 32;
     uint256 public constant MAX_QUOTE_DURATION = 5 minutes;
 
@@ -30,6 +30,10 @@ contract QuoteRegistry {
     error InsufficientBalance();
     error TransferFailed();
     error InvalidPrice();
+
+    constructor(uint256 minStake) {
+        MIN_STAKE = minStake;
+    }
 
     function stake() external payable {
         stakeOf[msg.sender] += msg.value;

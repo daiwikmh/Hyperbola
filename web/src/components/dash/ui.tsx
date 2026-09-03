@@ -8,7 +8,7 @@ export function Panel({
 }: {
 	title: string;
 	hint?: string;
-	children: ReactNode;
+	children?: ReactNode;
 	wide?: boolean;
 }) {
 	return (

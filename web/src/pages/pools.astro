@@ -1,0 +1,8 @@
+---
+import Console from '../layouts/Console.astro';
+import ConsolePage from '../components/dash/ConsolePage';
+---
+
+<Console title="Hyberbola — Pools" description="The deployment this console reads, and the liquidity behind the pool.">
+	<ConsolePage page="pools" client:only="react" />
+</Console>

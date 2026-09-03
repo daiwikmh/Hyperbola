@@ -1,0 +1,8 @@
+---
+import Console from '../layouts/Console.astro';
+import ConsolePage from '../components/dash/ConsolePage';
+---
+
+<Console title="Hyberbola — Positions" description="Stake, quote, and fund the inventory the hook draws on when you win an auction.">
+	<ConsolePage page="positions" client:only="react" />
+</Console>

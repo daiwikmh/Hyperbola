@@ -1,22 +1,26 @@
 import { useState } from 'react';
-import { parseUnits, type Address } from 'viem';
+import { formatUnits, parseUnits, type Address } from 'viem';
 import { useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { hookAbi } from '../../lib/abis';
 import { sqrtPriceX96ToPrice, swapPriceLimit, type PoolKey } from '../../lib/pool';
+import { REQUIRED_CHAIN } from '../../lib/wagmi';
 import { Addr, Btn, Field, Note, Panel, Row, TxState } from './ui';
 
-type AuctionResult = {
-	proceed: boolean;
-	targetSqrtPriceX96: bigint;
-	primaryWinner: Address;
-	primaryPaymentDue: bigint;
-	hasSecondary: boolean;
-	secondaryWinner: Address;
+type Decision = {
+	intervene: boolean;
+	fillIn: bigint;
+	fillOut: bigint;
+	hookPriceWad: bigint;
+	vanillaEndSqrtPriceX96: bigint;
+	fairSqrtPriceX96: bigint;
+	winner: Address;
+	winnerPriceWad: bigint;
+	secondPriceWad: bigint;
 	inputCurrency: Address;
 	outputCurrency: Address;
 };
 
-export function AuctionPreview({ hook, poolKey }: { hook: Address; poolKey: PoolKey }) {
+export function DecisionPreview({ hook, poolKey }: { hook: Address; poolKey: PoolKey }) {
 	const [amountIn, setAmountIn] = useState('1');
 	const [zeroForOne, setZeroForOne] = useState(true);
 
@@ -37,17 +41,17 @@ export function AuctionPreview({ hook, poolKey }: { hook: Address; poolKey: Pool
 	const { data, error, isFetching } = useReadContract({
 		address: hook,
 		abi: hookAbi,
-		functionName: 'previewAuction',
+		functionName: 'preview',
 		args: [poolKey, params],
 		query: { enabled: amount > 0n, refetchInterval: 8000, retry: false },
 	});
 
-	const result = data as AuctionResult | undefined;
+	const d = data as Decision | undefined;
 
 	return (
 		<Panel
-			title="Auction preview"
-			hint="Calls previewAuction on the hook — the same _evaluateAuction the pool runs inside beforeSwap. Read-only, so it costs nothing to ask."
+			title="beforeSwap decision"
+			hint="Calls preview on the hook — the same _decide the pool runs inside beforeSwap. Read-only, so it costs nothing to ask."
 			wide
 		>
 			<div className="controls">
@@ -65,99 +69,121 @@ export function AuctionPreview({ hook, poolKey }: { hook: Address; poolKey: Pool
 				</label>
 			</div>
 
-			{error && (
-				<Note tone="warn">
-					previewAuction reverted — {error.message.split('\n')[0]}. A division-by-zero here means the pool has no
-					active liquidity: _limitStateSqrtPrice divides by the raw liquidity, which is only guarded in its scaled
-					copy.
-				</Note>
-			)}
+			{error && <Note tone="warn">preview reverted — {error.message.split('\n')[0]}.</Note>}
 
-			{!error && result && (
+			{!error && d && (
 				<>
-					<Row label="proceeds">
-						{result.proceed ? (
-							<span className="ok">yes — a bundle would run</span>
+					<Row label="intervene">
+						{d.intervene ? (
+							<span className="ok">yes — hook fills part of this order</span>
 						) : (
-							<span className="dim">no — no live quote values this trade above zero</span>
+							<span className="dim">no — swap runs vanilla, hook stays out</span>
 						)}
 					</Row>
 					<Row label="winner">
-						<Addr value={result.primaryWinner} />
+						<Addr value={d.winner} />
 					</Row>
-					<Row label="pays (second price)">
-						<span className="mono">{result.primaryPaymentDue.toString()}</span>
+					<Row label="winner belief (wad)">
+						<span className="mono">{d.winnerPriceWad.toString()}</span>
 					</Row>
-					<Row label="backup bidder">
-						{result.hasSecondary ? <Addr value={result.secondaryWinner} /> : <span className="dim">none</span>}
-					</Row>
-					<Row label="limit state target">
+					<Row label="runner-up belief (wad)">
 						<span className="mono">
-							{result.targetSqrtPriceX96.toString()}
-							{result.targetSqrtPriceX96 > 0n && (
-								<span className="dim"> · price ≈ {sqrtPriceX96ToPrice(result.targetSqrtPriceX96).toPrecision(8)}</span>
-							)}
+							{d.secondPriceWad > 0n ? d.secondPriceWad.toString() : 'none — lone bidder'}
+						</span>
+					</Row>
+					<Row label="hook fill price">
+						<span className="mono">
+							{d.hookPriceWad > 0n ? Number(formatUnits(d.hookPriceWad, 18)).toPrecision(8) : '—'}
+						</span>
+					</Row>
+					<Row label="fill in / out">
+						<span className="mono">
+							{Number(formatUnits(d.fillIn, 18)).toFixed(4)} → {Number(formatUnits(d.fillOut, 18)).toFixed(4)}
+						</span>
+					</Row>
+					<Row label="vanilla end price">
+						<span className="mono">
+							{d.vanillaEndSqrtPriceX96 > 0n
+								? sqrtPriceX96ToPrice(d.vanillaEndSqrtPriceX96).toPrecision(8)
+								: '—'}
+						</span>
+					</Row>
+					<Row label="fair edge price">
+						<span className="mono">
+							{d.fairSqrtPriceX96 > 0n ? sqrtPriceX96ToPrice(d.fairSqrtPriceX96).toPrecision(8) : '—'}
 						</span>
 					</Row>
 					<Row label="input / output">
 						<span>
-							<Addr value={result.inputCurrency} /> → <Addr value={result.outputCurrency} />
+							<Addr value={d.inputCurrency} /> → <Addr value={d.outputCurrency} />
 						</span>
 					</Row>
-					{result.proceed && result.primaryPaymentDue === 0n && (
+					{d.intervene && d.secondPriceWad === 0n && (
 						<Note tone="warn">
-							Only one live bidder, so the second price is zero — the winner sandwiches with no refund to the
-							swapper. This is the single-quoter case the tests cover.
+							Only one live bidder — the hook prices the fill against that lone belief.
 						</Note>
 					)}
 				</>
 			)}
 
-			{isFetching && !result && !error && <Note>reading…</Note>}
+			{isFetching && !d && !error && <Note>reading…</Note>}
 			{amount === 0n && <Note>Enter an amount to preview.</Note>}
 		</Panel>
 	);
 }
 
-export function LvrPanel({ hook, poolKey }: { hook: Address; poolKey: PoolKey }) {
+export function SweepPanel({ hook, poolKey }: { hook: Address; poolKey: PoolKey }) {
 	const { writeContract, data: hash, error, isPending, reset } = useWriteContract();
 	const { isLoading: confirming, isSuccess: confirmed } = useWaitForTransactionReceipt({ hash });
 
-	const { data: frontrunTicks } = useReadContract({ address: hook, abi: hookAbi, functionName: 'frontrunTicks' });
+	const c0 = useReadContract({
+		address: hook,
+		abi: hookAbi,
+		functionName: 'inventory',
+		args: [poolKey.currency0],
+		query: { refetchInterval: 8000 },
+	});
+	const c1 = useReadContract({
+		address: hook,
+		abi: hookAbi,
+		functionName: 'inventory',
+		args: [poolKey.currency1],
+		query: { refetchInterval: 8000 },
+	});
+
+	const sweep = (sellZero: boolean) => {
+		reset();
+		writeContract({
+			chainId: REQUIRED_CHAIN.id,
+			gas: 600_000n,
+			address: hook,
+			abi: hookAbi,
+			functionName: 'sweepInventory',
+			args: [poolKey, sellZero, '0x'],
+		});
+	};
 
 	return (
 		<Panel
-			title="Rebalance (LVR)"
-			hint="Permissionless. Auctions the right to move the pool to the winner's believed price, scored on φ = xv + y − 2√(kv). The payment is donated straight to LPs."
+			title="Sweep inventory"
+			hint="Permissionless. A solver buys the hook's accumulated inventory at the runner-up belief, hedges it externally, and keeps φ₁ − φ₂. Proceeds refill the buffer; the surplus is donated to LPs."
 		>
-			<Row label="fallback frontrun">
-				<span className="mono">
-					{frontrunTicks !== undefined ? `${frontrunTicks} ticks` : '—'}
-					{frontrunTicks === 0 && <span className="dim"> · disabled</span>}
-				</span>
+			<Row label="inventory currency0">
+				<span className="mono">{c0.data !== undefined ? formatUnits(c0.data as bigint, 18) : '—'}</span>
 			</Row>
-
-			{frontrunTicks !== undefined && frontrunTicks !== 0 && (
-				<Note tone="warn">
-					A non-zero fallback front-runs even with no bidders, which is worse for the swapper than doing nothing.
-					It exists for testing.
-				</Note>
-			)}
-
+			<Row label="inventory currency1">
+				<span className="mono">{c1.data !== undefined ? formatUnits(c1.data as bigint, 18) : '—'}</span>
+			</Row>
 			<div className="btn-row">
-				<Btn
-					primary
-					busy={isPending}
-					onClick={() => {
-						reset();
-						writeContract({ address: hook, abi: hookAbi, functionName: 'settleLVR', args: [poolKey] });
-					}}
-				>
-					settleLVR
+				<Btn primary busy={isPending} onClick={() => sweep(true)}>
+					sweep c0
+				</Btn>
+				<Btn busy={isPending} onClick={() => sweep(false)}>
+					sweep c1
 				</Btn>
 			</div>
 
-			<Note>No-op when no quoter's belief implies positive potential, so calling it when nothing is stale is safe.</Note>
+			<Note>Reverts with NothingToSweep when there is no inventory or the belief no longer clears the cost basis.</Note>
 			<TxState hash={hash} error={error} confirming={confirming} confirmed={confirmed} />
 		</Panel>
 	);

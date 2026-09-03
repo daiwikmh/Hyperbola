@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Address } from 'viem';
+import { useChainId } from 'wagmi';
+import { deployedByChain } from './deployed';
 import type { PoolKey } from './pool';
 
 export type Deployment = {
@@ -24,18 +26,21 @@ export const EMPTY: Deployment = {
 const KEY = 'hyberbola.deployment.v1';
 
 export function useDeployment() {
+	const chainId = useChainId();
 	const [deployment, setDeployment] = useState<Deployment>(EMPTY);
 	const [loaded, setLoaded] = useState(false);
 
 	useEffect(() => {
+		let stored: Deployment | null = null;
 		try {
 			const raw = localStorage.getItem(KEY);
-			if (raw) setDeployment({ ...EMPTY, ...JSON.parse(raw) });
+			if (raw) stored = { ...EMPTY, ...JSON.parse(raw) };
 		} catch {
 			/* private mode, blocked storage */
 		}
+		setDeployment(stored ?? deployedByChain[chainId] ?? EMPTY);
 		setLoaded(true);
-	}, []);
+	}, [chainId]);
 
 	const save = useCallback((next: Deployment) => {
 		setDeployment(next);
@@ -108,5 +113,15 @@ export const erc20Abi = [
 		stateMutability: 'view',
 		inputs: [],
 		outputs: [{ type: 'uint8' }],
+	},
+	{
+		type: 'function',
+		name: 'mint',
+		stateMutability: 'nonpayable',
+		inputs: [
+			{ name: 'to', type: 'address' },
+			{ name: 'value', type: 'uint256' },
+		],
+		outputs: [],
 	},
 ] as const;
