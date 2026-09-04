@@ -3,6 +3,9 @@ pragma solidity ^0.8.26;
 
 import {FixedPointMathLib} from "solmate/src/utils/FixedPointMathLib.sol";
 
+/// @notice Potential function and per-trade value from "RediSwap: MEV Redistribution
+///         Mechanism for CFMMs" — Mengqian Zhang, Sen Yang, Fan Zhang (Yale),
+///         arXiv:2410.18434 (2024). φ(x, y, v) = xv + y − 2√(kv); Δφ = Δx·v + Δy.
 library RediSwapMath {
     using FixedPointMathLib for uint256;
 

@@ -212,12 +212,12 @@ swap adds ~a plain swap's overhead.
 
 | | address |
 |---|---|
-| **RediSwapHook** | [`0x5e2Cd161FbE98325fec1Aa949907716655914088`](https://sepolia.uniscan.xyz/address/0x5e2Cd161FbE98325fec1Aa949907716655914088) |
-| **QuoteRegistry** | [`0x866E9919ee149222f877d3a44d9Eb0FDb97F0662`](https://sepolia.uniscan.xyz/address/0x866E9919ee149222f877d3a44d9Eb0FDb97F0662) |
+| **RediSwapHook** | [`0xB9C04898F52398940Dfe5923d1d868edE4238088`](https://sepolia.uniscan.xyz/address/0xB9C04898F52398940Dfe5923d1d868edE4238088) |
+| **QuoteRegistry** | [`0x91A563B7d85892993214CAd4C289f85f376F2273`](https://sepolia.uniscan.xyz/address/0x91A563B7d85892993214CAd4C289f85f376F2273) |
 | PoolManager (Uniswap) | `0x00B036B58a818B1BC34d502D3fE730Db729e62AC` |
-| Currency0 (Test USDC) | `0xb3D7643A75364eb2b3942bD1c4fbaCA02D34ee33` |
-| Currency1 (Test DAI) | `0xce91739e7dECeB3BfC78D41E3B03aD9208B7A384` |
-| Pool id | `0x3f322bd0fbc073a392a875298ee5c0cbe97bdb1c0fee6a5ef7ed386316297342` |
+| Currency0 (Test USDC) | `0x6038835cC4312CEc700006451E4f95Cd9E7326aB` |
+| Currency1 (Test DAI) | `0xB33Dc012a2fb318992c076A67F88B50Da9E18286` |
+| Pool id | `0xfca21fb9e8d4c0e372a4f46e57b970b2772466145c4daa5de918bbd5d10507df` |
 | Fee / tick spacing | `3000` / `60` |
 
 Buffer seeded with **25,000** of each currency. The console at `web/` loads this stack by
@@ -260,6 +260,22 @@ web/                      Astro static site
   including the residual items before a production deployment, is in
   [`hyberbola/SECURITY.md`](hyberbola/SECURITY.md). **Not yet third-party audited** — treat as
   a research deployment on testnet.
+
+---
+
+## 📚 References
+
+- **RediSwap: MEV Redistribution Mechanism for CFMMs** — Mengqian Zhang, Sen Yang, Fan Zhang
+  (Yale University). [arXiv:2410.18434](https://arxiv.org/abs/2410.18434) (2024); 2025 ACM
+  Workshop on Decentralized Finance and Security. The potential function
+  `φ(x, y, v) = xv + y − 2√(kv)`, the per-trade value `Δφ = Δx·v + Δy`, and the
+  second-price auction over solver belief prices in `RediSwapMath.sol` are from this paper.
+  Hyberbola adapts the redistribution idea into a **conditional partial-fill** hook with a
+  structural vanilla-or-better floor, rather than a full transaction-sequencing mechanism.
+- **Automated Market Making and Loss-Versus-Rebalancing** — Milionis, Moallemi, Roughgarden,
+  Wang. [arXiv:2208.06046](https://arxiv.org/abs/2208.06046) (2022). The LVR framing the
+  sweep-donation path is meant to offset.
+- [Uniswap v4 core](https://github.com/Uniswap/v4-core) · [v4 hooks concepts](https://docs.uniswap.org/contracts/v4/concepts/hooks)
 
 ---
 

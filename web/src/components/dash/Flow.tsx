@@ -134,7 +134,11 @@ export function Flow({ hook, registry, poolKey, poolId }: Props) {
 						</>
 					) : (
 						<span className="dim">
-							{amount > 0n ? 'belief region is not on your favourable side — hook stays inert' : 'enter a trade'}
+							{amount === 0n
+								? 'enter a trade'
+								: !d || d.winnerPriceWad === 0n
+									? 'no live quote for this pool — post one on /positions or run SeedDemo (quotes expire after 5 min)'
+									: `belief ${f4(d.secondPriceWad || d.winnerPriceWad)} is not on your favourable side for this direction — hook stays inert`}
 						</span>
 					)}
 				</Node>
