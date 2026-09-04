@@ -6,7 +6,7 @@
 
 ### The Uniswap v4 hook that only steps in to make your fill better.
 
-*When your swap would be filled worse than the market's own price, the hook fills part of it from its own capital, at a better price — and pays the recaptured value to the LPs.*
+*When your swap would be filled worse than the market price, the hook fills part of it at a better price — and the arbitrage a bot would have taken goes to you and the LPs instead.*
 
 [![Uniswap v4](https://img.shields.io/badge/Uniswap-v4%20hook-ff007a?logo=uniswap&logoColor=white)](https://docs.uniswap.org/contracts/v4/overview)
 [![Foundry](https://img.shields.io/badge/Built%20with-Foundry-000000)](https://getfoundry.sh)
