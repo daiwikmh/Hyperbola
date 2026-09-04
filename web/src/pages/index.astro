@@ -213,8 +213,23 @@ const cards = [
 			<a class="cta" href="/swap">Open the console →</a>
 		</section>
 
+		<section class="refs">
+			<h2>Built on</h2>
+			<p>
+				The potential function <em>φ(x, y, v) = xv + y − 2√(kv)</em>, the per-trade value
+				<em>Δφ = Δx·v + Δy</em>, and the second-price auction over solver belief prices are from
+				<a href="https://arxiv.org/abs/2410.18434" target="_blank" rel="noopener">RediSwap: MEV
+				Redistribution Mechanism for CFMMs</a> — Zhang, Yang &amp; Zhang, Yale (arXiv:2410.18434,
+				2024). RediSwap is a full transaction-sequencing AMM; Hyberbola adapts just the
+				redistribution idea into a conditional partial-fill v4 hook with a structural
+				vanilla-or-better floor. LVR framing:
+				<a href="https://arxiv.org/abs/2208.06046" target="_blank" rel="noopener">Milionis et al.,
+				2022</a>.
+			</p>
+		</section>
+
 		<footer>
-			<span class="dim">Uniswap v4 hook · MIT</span>
+			<span class="dim">Uniswap v4 hook · MIT · after <a href="https://arxiv.org/abs/2410.18434" target="_blank" rel="noopener">RediSwap</a></span>
 			<a href="/swap">Console</a>
 		</footer>
 	</main>
@@ -485,6 +500,31 @@ const cards = [
 		color: var(--ink-faint);
 	}
 
+	.refs p {
+		max-width: 62ch;
+		color: var(--ink-faint);
+		font-size: 14px;
+	}
+
+	.refs em {
+		font-style: normal;
+		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-size: 12.5px;
+		color: var(--ink-dim);
+	}
+
+	.refs a,
+	footer a {
+		color: var(--ink-dim);
+		border-bottom: 1px solid var(--rule);
+	}
+
+	.refs a:hover,
+	footer a:hover {
+		color: var(--ink);
+		border-color: var(--ink-dim);
+	}
+
 	footer {
 		display: flex;
 		gap: var(--step-5);
@@ -492,7 +532,16 @@ const cards = [
 		border-top: 1px solid var(--rule);
 	}
 
-	footer a:last-child {
+	footer .dim a {
+		color: var(--ink-faint);
+		border-bottom-color: transparent;
+	}
+
+	footer .dim a:hover {
+		color: var(--ink-dim);
+	}
+
+	footer > a:last-child {
 		margin-left: auto;
 	}
 

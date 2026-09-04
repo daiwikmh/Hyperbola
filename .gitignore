@@ -7,8 +7,7 @@
 hyberbola/cache/
 hyberbola/out/
 hyberbola/lib/
-hyberbola/broadcast/*/31337/
-hyberbola/broadcast/**/dry-run/
+hyberbola/broadcast/
 
 # Docs
 docs/

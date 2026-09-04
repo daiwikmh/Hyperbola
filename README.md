@@ -6,7 +6,7 @@
 
 ### The Uniswap v4 hook that only steps in to make your fill better.
 
-*When your swap would be filled worse than the market's own price, the hook fills part of it — from its own capital, at a better price — and pays the recaptured value to the LPs.*
+*When your swap would be filled worse than the market's own price, the hook fills part of it from its own capital, at a better price — and pays the recaptured value to the LPs.*
 
 [![Uniswap v4](https://img.shields.io/badge/Uniswap-v4%20hook-ff007a?logo=uniswap&logoColor=white)](https://docs.uniswap.org/contracts/v4/overview)
 [![Foundry](https://img.shields.io/badge/Built%20with-Foundry-000000)](https://getfoundry.sh)
@@ -162,6 +162,38 @@ Pool at **1.00**. You sell **1,000 USDC → DAI**. Live beliefs: `1.05`, `1.02` 
 | solver | keeps the entire mispricing | keeps only `v₁ − v₂` → 0 with competition |
 | pool price | pushed down, left stale | barely moved |
 
+### Where the capital comes from
+
+The hook **fronts** the fill from its own buffer — for about a minute — then an arbitrageur
+buys the position back and makes it whole.
+
+```
+1. swap        buffer[DAI] −304.8   →  you   (the hook pays your fill from its own capital)
+               inventory[USDC] +300     (the hook is now long 300 USDC it slightly overpaid for)
+
+2. sweep       solver → hook  +306 DAI   (an arbitrageur buys the inventory at v₂ = 1.02)
+               buffer[DAI]  +304.8       (restored to exactly where it started)
+               donate → LPs  +1.2        (the surplus)
+```
+
+So the hook's capital is exposed only between the swap and the sweep. The value being split
+isn't a subsidy from the buffer — it's the **arbitrage gap that would otherwise have gone
+entirely to a backrunning bot.** In a plain pool that bot keeps 100% of it; here it becomes:
+
+```
+the arbitrage gap  →  a slice to the swapper   (a better fill, up front)
+                   →  a slice to the LPs        (the on-chain donation)
+                   →  the rest to the sweeping solver  (v₁ − v₂, → 0 with competition)
+```
+
+The buffer only ever buys inventory **below** the competitive belief, and the sweep restores
+it. The real exposure is adverse selection: if the posted beliefs are stale and the market
+genuinely moved, the hook can be left holding inventory no solver wants (the sweep reverts
+when `proceeds ≤ cost`) and the buffer stays depleted until the price recovers or someone
+tops it up — which is why it is **bootstrap capital**, `MIN_STAKE` is a slashing bond and
+never working capital, and a TWAP floor on the sweep price is a
+[known open item](hyberbola/SECURITY.md).
+
 ### Parameters, as deployed
 
 | | value | meaning |
@@ -225,28 +257,6 @@ default — see [**QUICKSTART.md**](QUICKSTART.md).
 
 ---
 
-## Repository layout
-
-```
-hyberbola/                Foundry project
-  src/
-    RediSwapHook.sol       the hook
-    QuoteRegistry.sol      staked belief book
-    libraries/RediSwapMath.sol
-  test/                    33 tests — unit, fuzz, invariant
-  script/
-    Deploy.s.sol           full stack: tokens + registry + hook (CREATE2-mined) + pool + liquidity
-    SeedDemo.s.sol         one command: deepen liquidity + stand up quoters
-  SECURITY.md              self-review against the v4 hook security checklist
-
-web/                      Astro static site
-  src/pages/               landing + swap / pools / positions / transactions
-  src/components/dash/     the console (React islands, wagmi v3 / viem)
-  src/lib/deployed.ts      the live deployment the console reads
-```
-
----
-
 ## 🔒 Security & trust
 
 - Both contracts are **immutable** — no proxy, no admin, no owner, no pause.
@@ -265,16 +275,51 @@ web/                      Astro static site
 
 ## 📚 References
 
-- **RediSwap: MEV Redistribution Mechanism for CFMMs** — Mengqian Zhang, Sen Yang, Fan Zhang
-  (Yale University). [arXiv:2410.18434](https://arxiv.org/abs/2410.18434) (2024); 2025 ACM
-  Workshop on Decentralized Finance and Security. The potential function
-  `φ(x, y, v) = xv + y − 2√(kv)`, the per-trade value `Δφ = Δx·v + Δy`, and the
-  second-price auction over solver belief prices in `RediSwapMath.sol` are from this paper.
-  Hyberbola adapts the redistribution idea into a **conditional partial-fill** hook with a
-  structural vanilla-or-better floor, rather than a full transaction-sequencing mechanism.
+### RediSwap — the mechanism this is built on
+
+**RediSwap: MEV Redistribution Mechanism for CFMMs** — Mengqian Zhang, Sen Yang, Fan Zhang
+(Yale University). [arXiv:2410.18434](https://arxiv.org/abs/2410.18434) (Oct 2024); published at
+the 2025 ACM Workshop on Decentralized Finance and Security
+([ACM DL](https://dl.acm.org/doi/10.1145/3733815.3764044)).
+
+RediSwap is a full AMM design: it collects every arbitrageur's reported price belief, runs a
+dominant-strategy-incentive-compatible auction, and then **sequences transactions and inserts the
+MEV trades itself** on behalf of the winning arbitrageur, refunding the proceeds to users and LPs.
+The paper proves the mechanism is individually rational and Sybil-proof, beats UniswapX execution
+on 89% of trades, and cuts LP loss to under 0.5% of the original LVR.
+
+**What Hyberbola takes from it:**
+
+| From the paper | Where it lives | How it's used |
+|---|---|---|
+| Potential function `φ(x, y, v) = xv + y − 2√(kv)` | `RediSwapMath.potentialValueWad` | scores how far the pool sits from a belief price `v` |
+| Per-trade value `Δφ = Δx·v + Δy` | `RediSwapMath.tradeValueWad` | the arbitrageur's bid — what a trade is worth at belief `v` |
+| Second-price auction over belief prices | `QuoteRegistry.bestForXForY` / `bestForYForX` return winner **and runner-up**; the hook prices and settles at the runner-up `v₂` | truthful bidding stays dominant; one aggressive quote can't move the fill |
+| Refund the recaptured value to users + LPs | `beforeSwap` partial fill (to the swapper) + `sweepInventory` `donate` (to LPs) | the redistribution target |
+
+**What Hyberbola changes — and why:**
+
+- **No transaction sequencing.** RediSwap needs to order transactions and inject MEV trades,
+  which requires builder cooperation or a proposer-side mechanism. Hyberbola runs entirely inside
+  a single `beforeSwap` callback on an ordinary v4 pool — nothing to bootstrap.
+- **Conditional, partial intervention.** RediSwap manages the whole arbitrage opportunity.
+  Hyberbola only acts when the swap pushes price to the *wrong side* of the belief region, and
+  only fills up to `MAX_FILL_BPS` (30%) of the order. The rest is an ordinary pool swap.
+- **A structural vanilla-or-better floor.** The fill is priced strictly between the pool and
+  `v₂`, so the swapper's total output is provably ≥ a plain pool on every touched trade — checked
+  by fuzzing and a 128,000-call invariant. This is a design constraint Hyberbola adds on top.
+- **The arbitrageur commits no capital until they win.** Solvers post a staked price; capital
+  is only committed for the seconds it takes to sweep the hook's inventory.
+
+So Hyberbola is best read as *a deployable v4-hook adaptation of RediSwap's redistribution idea*,
+trading the paper's optimal capture for something you can ship on a pool today with a hard
+swapper guarantee.
+
+### Other
+
 - **Automated Market Making and Loss-Versus-Rebalancing** — Milionis, Moallemi, Roughgarden,
-  Wang. [arXiv:2208.06046](https://arxiv.org/abs/2208.06046) (2022). The LVR framing the
-  sweep-donation path is meant to offset.
+  Wang. [arXiv:2208.06046](https://arxiv.org/abs/2208.06046) (2022). The LVR the sweep-donation
+  path is meant to offset.
 - [Uniswap v4 core](https://github.com/Uniswap/v4-core) · [v4 hooks concepts](https://docs.uniswap.org/contracts/v4/concepts/hooks)
 
 ---

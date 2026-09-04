@@ -9,10 +9,8 @@ lib/
 .logs/
 .ignore/
 
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
+# Broadcast logs — deploy artifacts, not source
+/broadcast/
 
 # Docs
 docs/
